@@ -252,6 +252,7 @@ async function startWebFormInstance(formValues) {
   `);
 
   const payload = { formValues };
+  console.log("Would POST to Instances:createInstance:", payload);
 
   if (!CONFIG.DEMO_MODE) {
     try {
@@ -265,40 +266,13 @@ async function startWebFormInstance(formValues) {
       window.location.href = data.redirectUrl; // formUrl + #instanceToken=...
       return;
     } catch (err) {
-      renderDemoFallback(payload, err.message);
-      return;
+      console.warn("Backend call failed, falling back to unprefilled form:", err.message);
     }
   }
 
-  // DEMO_MODE: no backend wired up yet — show exactly what WOULD be sent,
-  // then hand off to the real, live web form.
-  setTimeout(() => renderDemoFallback(payload, null), 700);
-}
-
-function renderDemoFallback(payload, errorMessage) {
-  openModal(`
-    <div class="success-screen">
-      <div class="icon">✓</div>
-      <h3>This is a real, live DocuSign Web Form</h3>
-      <p style="color:var(--muted); font-size:13.5px;">
-        ${errorMessage
-          ? `No live backend responded (${errorMessage}), so here's the simulated payload.`
-          : `No backend is wired up yet, so this couldn't be sent as a real prefill request.`}
-        Below is exactly what your backend would POST to DocuSign's Web Forms
-        <code>Instances:createInstance</code> endpoint to get a pre-filled
-        instance link back. Since that part isn't wired up, "Open the real form"
-        below takes you to the actual published form instead — real and
-        signable, just not pre-filled yet.
-      </p>
-      <pre class="payload">POST /v1/accounts/{accountId}/forms/{formId}/instances
-
-${JSON.stringify(payload, null, 2)}</pre>
-      <div class="modal-actions">
-        <button class="btn btn-outline" onclick="closeModal()">Close</button>
-        <button class="btn btn-primary" onclick="window.open(CONFIG.REAL_WEBFORM_URL, '_blank')">Open the real form</button>
-      </div>
-    </div>
-  `);
+  // No live prefill wired up (yet) — go straight to the real, live form.
+  closeModal();
+  window.location.href = CONFIG.REAL_WEBFORM_URL;
 }
 
 document.getElementById("disputeBtn").addEventListener("click", () => showPrefillPreview("streamline"));

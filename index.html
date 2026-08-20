@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LAFCU Digital Banking (Demo)</title>
+<style>
+  :root {
+    --navy: #0b1f4b;
+    --navy-dark: #061436;
+    --gold: #c9a34e;
+    --bg: #eef1f6;
+    --card: #ffffff;
+    --text: #1c2534;
+    --muted: #5b6579;
+    --danger: #b3261e;
+    --border: #dde2ea;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    background: var(--navy);
+    color: #fff;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: 0.3px; }
+  header .brand .mark { background: var(--gold); color: var(--navy-dark); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+  header .user { font-size: 13px; color: #cdd6ec; }
+  .demo-banner {
+    background: #fff6dc;
+    border-bottom: 1px solid #eadfb0;
+    color: #6b5710;
+    font-size: 13px;
+    padding: 8px 24px;
+    text-align: center;
+  }
+  main { max-width: 920px; margin: 28px auto; padding: 0 20px 60px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(20, 30, 60, 0.04);
+  }
+  .card h2 { margin: 0 0 4px; font-size: 16px; }
+  .card .sub { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+  .acct-summary { display: flex; gap: 24px; flex-wrap: wrap; }
+  .acct-summary .stat { flex: 1; min-width: 160px; }
+  .acct-summary .stat .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+  .acct-summary .stat .value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr.flagged td { background: #fdf3f2; }
+  .txn-name { font-weight: 600; }
+  .txn-sub { color: var(--muted); font-size: 12px; }
+  .amt { font-weight: 700; text-align: right; }
+  .flag-pill { display: inline-block; background: #f8dedb; color: var(--danger); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+  button.btn { font-family: inherit; border: none; border-radius: 8px; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  button.btn-primary { background: var(--navy); color: #fff; }
+  button.btn-primary:hover { background: var(--navy-dark); }
+  button.btn-outline { background: transparent; color: var(--navy); border: 1px solid var(--navy); }
+  button.btn-link { background: none; color: var(--danger); font-weight: 600; padding: 4px 0; text-decoration: underline; font-size: 13px; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(10, 15, 30, 0.5); display: none; align-items: center; justify-content: center; z-index: 50; }
+  .overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 14px; max-width: 520px; width: 92%; padding: 26px 28px; max-height: 86vh; overflow-y: auto; }
+  .modal h3 { margin-top: 0; }
+  .modal .field-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px dashed var(--border); font-size: 14px; }
+  .modal .field-row .k { color: var(--muted); }
+  .modal .field-row .v { font-weight: 600; }
+  .modal .note { font-size: 12.5px; color: var(--muted); background: #f4f6fa; border-radius: 8px; padding: 10px 12px; margin: 14px 0; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+  .success-screen { text-align: center; padding: 10px 4px 4px; }
+  .success-screen .icon { width: 52px; height: 52px; border-radius: 50%; background: #e6f4ea; color: #1e7a3d; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-size: 26px; }
+  pre.payload { background: #0b1f4b; color: #d7e2ff; font-size: 12px; border-radius: 10px; padding: 14px; overflow-x: auto; text-align: left; }
+  .spinner { width: 30px; height: 30px; border: 3px solid #d9dfeb; border-top-color: var(--navy); border-radius: 50%; margin: 20px auto; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><span class="mark">LA</span> LAFCU Digital Banking</div>
+  <div class="user">Jordan Alvarez &nbsp;•&nbsp; Checking ••4821 &nbsp;|&nbsp; <a href="#" style="color:#cdd6ec;">Log out</a></div>
+</header>
+
+<div class="demo-banner">
+  DEMO — this page simulates a credit union's online banking portal. Transaction data below is fictional and stands in for a real "core system" (banking/transaction platform). It's used to pre-fill the DocuSign ACH Stop Payment web form.
+</div>
+
+<main>
+
+  <div class="card">
+    <h2>Account overview</h2>
+    <div class="sub">Primary Checking ••4821</div>
+    <div class="acct-summary">
+      <div class="stat"><div class="label">Available balance</div><div class="value">$2,318.44</div></div>
+      <div class="stat"><div class="label">Pending debits</div><div class="value">1</div></div>
+      <div class="stat"><div class="label">Account status</div><div class="value" style="color:#1e7a3d;">Good standing</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Recent transactions</h2>
+    <div class="sub">Last 5 days</div>
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Description</th><th style="text-align:right;">Amount</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>08/18/2026</td>
+          <td><div class="txn-name">Payroll Deposit — Acme Logistics</div><div class="txn-sub">Direct deposit</div></td>
+          <td class="amt" style="color:#1e7a3d;">+$1,940.00</td>
+          <td></td>
+        </tr>
+        <tr class="flagged">
+          <td>08/17/2026</td>
+          <td>
+            <div class="txn-name">Streamline Fitness LLC <span class="flag-pill">Unrecognized?</span></div>
+            <div class="txn-sub">ACH debit • Recurring merchant</div>
+          </td>
+          <td class="amt">−$49.99</td>
+          <td><button class="btn-link" id="disputeBtn">Dispute / Stop this debit</button></td>
+        </tr>
+        <tr>
+          <td>08/15/2026</td>
+          <td><div class="txn-name">Green Valley Mortgage Co.</div><div class="txn-sub">ACH debit</div></td>
+          <td class="amt">−$1,412.00</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>08/14/2026</td>
+          <td><div class="txn-name">Grocery Mart #204</div><div class="txn-sub">Debit card purchase</div></td>
+          <td class="amt">−$86.12</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Need to stop a payment?</h2>
+    <div class="sub">You can also start a request without picking a specific transaction.</div>
+    <button class="btn btn-outline" id="genericStartBtn">Start ACH Stop Payment Request</button>
+  </div>
+
+</main>
+
+<!-- Confirm / prefill preview modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalContent">
+    <!-- filled by JS -->
+  </div>
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   CONFIG
+   Point BACKEND_URL at the real endpoint from server-example (see
+   lafcu_demo_server.js). Until that's running with real DocuSign
+   credentials, DEMO_MODE keeps everything working locally with no
+   backend at all, so you can click through the full experience now.
+------------------------------------------------------------------ */
+const CONFIG = {
+  BACKEND_URL: "/api/start-ach-stop-payment",
+  DEMO_MODE: true
+};
+
+/* Stand-in for a "core system" (online banking / transaction platform)
+   lookup. In production this data already lives on the authenticated
+   session server-side — you would NOT trust values posted from the
+   browser for anything that ends up on a legal/signed document. */
+const CORE_SYSTEM_MEMBER = {
+  memberName: "Jordan Alvarez",
+  accountNumber: "****4821",
+  email: "jordan.alvarez@example.com"
+};
+
+const TRANSACTIONS = {
+  streamline: {
+    debitorCompanyName: "Streamline Fitness LLC",
+    amountOfDebit: "49.99",
+    firstDateOfDisputedDebit: "2026-08-17"
+  }
+};
+
+function buildFormValues(txnKey) {
+  const txn = txnKey ? TRANSACTIONS[txnKey] : null;
+  const values = {
+    MemberName: CORE_SYSTEM_MEMBER.memberName,
+    AccountNumber: CORE_SYSTEM_MEMBER.accountNumber
+  };
+  if (txn) {
+    values.DebitorCompanyName = txn.debitorCompanyName;
+    values.AmountOfDebit = txn.amountOfDebit;
+    values.FirstDateOfDisputedDebit = txn.firstDateOfDisputedDebit;
+    // Reasonable default the member can still change on the form itself
+    values.typeOfStopPayment = "Unauthorized";
+    values.ReasonNotAuthorized = true;
+  }
+  return values;
+}
+
+function openModal(html) {
+  document.getElementById("modalContent").innerHTML = html;
+  document.getElementById("overlay").classList.add("open");
+}
+function closeModal() {
+  document.getElementById("overlay").classList.remove("open");
+}
+
+function showPrefillPreview(txnKey) {
+  const formValues = buildFormValues(txnKey);
+  const rows = Object.entries(formValues).map(([k, v]) =>
+    `<div class="field-row"><span class="k">${k}</span><span class="v">${v}</span></div>`
+  ).join("");
+
+  openModal(`
+    <h3>We'll pre-fill this for you</h3>
+    <div class="note">These values come from your account and transaction history (the "core system") — you won't have to re-type them on the DocuSign form. You can still review and edit everything before signing.</div>
+    ${rows}
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="continueBtn">Continue to secure form</button>
+    </div>
+  `);
+
+  document.getElementById("continueBtn").onclick = () => startWebFormInstance(formValues);
+}
+
+async function startWebFormInstance(formValues) {
+  openModal(`
+    <div class="success-screen">
+      <div class="spinner"></div>
+      <div>Preparing your ACH Stop Payment form…</div>
+    </div>
+  `);
+
+  const payload = { formValues };
+
+  if (!CONFIG.DEMO_MODE) {
+    try {
+      const res = await fetch(CONFIG.BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("Backend returned " + res.status);
+      const data = await res.json();
+      window.location.href = data.redirectUrl; // formUrl + #instanceToken=...
+      return;
+    } catch (err) {
+      renderDemoFallback(payload, err.message);
+      return;
+    }
+  }
+
+  // DEMO_MODE: no backend wired up yet — show exactly what WOULD be sent.
+  setTimeout(() => renderDemoFallback(payload, null), 700);
+}
+
+function renderDemoFallback(payload, errorMessage) {
+  openModal(`
+    <div class="success-screen">
+      <div class="icon">✓</div>
+      <h3>Ready — this is where the redirect happens</h3>
+      <p style="color:var(--muted); font-size:13.5px;">
+        ${errorMessage
+          ? `No live backend responded (${errorMessage}), so here's the simulated result.`
+          : `Demo mode is on, so no real DocuSign call was made.`}
+        In production, your backend calls the DocuSign Web Forms
+        <code>Instances:createInstance</code> endpoint with this body,
+        then redirects the browser to the returned
+        <code>formUrl#instanceToken=...</code> — landing the member on
+        the actual pre-filled, embedded signing form.
+      </p>
+      <pre class="payload">POST /v1/accounts/{accountId}/forms/{formId}/instances
+
+${JSON.stringify(payload, null, 2)}</pre>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  `);
+}
+
+document.getElementById("disputeBtn").addEventListener("click", () => showPrefillPreview("streamline"));
+document.getElementById("genericStartBtn").addEventListener("click", () => showPrefillPreview(null));
+document.getElementById("overlay").addEventListener("click", (e) => {
+  if (e.target.id === "overlay") closeModal();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "lafcu-ach-stop-payment-demo",
+  "version": "1.0.0",
+  "description": "Demo backend for pre-filling the LAFCU ACH Stop Payment DocuSign web form from a mock core banking system.",
+  "main": "lafcu_demo_server.js",
+  "scripts": {
+    "start": "node lafcu_demo_server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5"
+  }
+}
